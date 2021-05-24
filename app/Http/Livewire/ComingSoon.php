@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
@@ -14,7 +15,8 @@ class ComingSoon extends Component
     {
         $current = Carbon::now()->timestamp;
 
-        $this->comingSoonUnformatted = Http::withHeaders(config('services.igdb.headers'))
+        $this->comingSoonUnformatted = Cache::remember('coming-soon', 7, function () use ($current) {
+            return Http::withHeaders(config('services.igdb.headers'))
             ->withBody(
                 "fields name, cover.url, first_release_date, platforms.abbreviation, rating, rating_count, summary, slug;
                     where platforms = (48,49,130,6)
@@ -26,6 +28,7 @@ class ComingSoon extends Component
                 "text/plain"
             )->post(config('services.igdb.endpoint'))
             ->json();
+        });
     }
     public function render()
     {
