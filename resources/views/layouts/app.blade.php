@@ -7,6 +7,7 @@
     <title>Tour App</title>
 
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    @livewireStyles
 </head>
 <body class="bg-gray-900 text-white">
     <header class="border-b border-gray-800">
@@ -53,5 +54,6 @@
             Powered by <a href="#">Laravit</a>
         </div>
     </footer>
+    @livewireScripts
 </body>
 </html>
