@@ -19,8 +19,18 @@
         </div>
     </div>
     @empty
-        <div>
-            ....loading
-        </div>
+        @foreach (range(1, 4) as $game)
+            <div class="most-anticipated-container space-y-10 mt-8">
+                <div class="game flex">
+                    <div class="bg-gray-800 w-16 h-20 flex-none"></div>
+                    <div class="ml-4">
+                        <div class="text-transparent bg-gray-700 rounded leading-tight">Title goes here today</div>
+                        <div class="text-transparent bg-gray-700 rounded inline-block text-sm mt-3">
+                            Sep 14, 2021
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
     @endforelse
 </div>
