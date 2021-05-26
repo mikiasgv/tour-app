@@ -5,18 +5,19 @@ namespace App\Http\Livewire;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class RecentlyReviewed extends Component
 {
-    public $recentlyReviewedUnformatted = [];
+    public $recentlyReviewed = [];
 
     public function loadRecentlyReviewed()
     {
         $before = Carbon::now()->subMonths(2)->timestamp;
         $current = Carbon::now()->timestamp;
 
-        $this->recentlyReviewedUnformatted = Cache::remember('recently-reviewed', 7, function () use ($before, $current) {
+        $recentlyReviewedUnformatted = Cache::remember('recently-reviewed', 7, function () use ($before, $current) {
             return Http::withHeaders(config('services.igdb.headers'))
             ->withBody(
                 "fields name, cover.url, first_release_date, total_rating_count, platforms.abbreviation, rating, rating_count, summary, slug;
@@ -32,7 +33,30 @@ class RecentlyReviewed extends Component
             ->json();
         });
 
+        $this->recentlyReviewed = $this->formatForView($recentlyReviewedUnformatted);
+
+        collect($this->recentlyReviewed)->filter(function ($game) {
+            return $game['rating'];
+        })->each(function ($game) {
+            $this->emit('reviewGameWithRatingAdded', [
+                'slug' => 'review_'.$game['slug'],
+                'rating' => $game['rating'] / 100
+            ]);
+        });
+
     }
+
+    private function formatForView($games)
+    {
+        return collect($games)->map(function ($game) {
+            return collect($game)->merge([
+                'coverImageUrl' => Str::replaceFirst('thumb','cover_big', $game['cover']['url']),
+                'rating' => isset($game['rating']) ? round($game['rating']) : null,
+                'platforms' => collect($game['platforms'])->pluck('abbreviation')->implode(', '),
+            ]);
+        })->toArray();
+    }
+
     public function render()
     {
         return view('livewire.recently-reviewed');
